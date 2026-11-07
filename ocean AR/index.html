@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ocean AR</title>
+
+  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
+
+  <script>
+    // ---------- Component 1: tap an object to change its colour ----------
+        AFRAME.registerComponent('color-changer', {
+        init: function () {
+            const colors = ['#EF2D5E', '#FFC65D', '#4CC3D9', '#7BC8A4', '#9B59B6'];
+            let index = 0;
+            this.el.addEventListener('click', () => {
+            index = (index + 1) % colors.length;
+            this.el.setAttribute('color', colors[index]);
+            });
+        }
+        });
+
+        // ---------- Component 2: show whether the marker is visible ----------
+        AFRAME.registerComponent('marker-status', {
+        init: function () {
+            const banner = document.querySelector('#status');
+            this.el.addEventListener('markerFound', () => {
+            banner.textContent = 'Ocean FOUND - tap the red ball and the treasure!';
+            banner.style.background = '#2E7D32';
+            });
+            this.el.addEventListener('markerLost', () => {
+            banner.textContent = 'Ocean LOST - point the camera at the Hiro marker';
+            banner.style.background = '#C62828';
+            });
+        }
+        });
+
+        AFRAME.registerComponent('treasure-interaction', {
+        init: function () {
+            let opened = false;
+            this.el.addEventListener('click', () => {
+            opened = !opened;
+            if (opened) {
+                this.el.setAttribute('scale', '1.4 1.4 1.4');
+                this.el.setAttribute('color', '#FFD700');
+            } else {
+                this.el.setAttribute('scale', '1 1 1');
+                this.el.setAttribute('color', '#F39C12');
+            }
+            });
+        }
+        });
+  </script>
+
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #status {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      padding: 10px; text-align: center; color: white;
+      font-family: sans-serif; background: #C62828;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="status">Looking for marker...</div>
+
+  <a-scene embedded vr-mode-ui="enabled: false"
+           arjs="sourceType: webcam; debugUIEnabled: false;">
+
+    <a-marker preset="hiro" marker-status>
+      <a-plane rotation="-90 0 0" width="1.6" height="1.6"
+               color="#0496C7"></a-plane>
+               
+    <!-- corals -->
+      <a-entity gltf-model="url(models/coral.glb)" position="-0.4 0 0.4" scale="0.1 0.1 0.1" animation="property: rotation; to: 0 360 0; dur: 5000; easing: linear; loop: true"></a-entity>
+      <a-entity gltf-model="url(models/coral2.glb)" position="0.4 0 0.4" scale="0.1 0.1 0.1" animation="property: scale; from: 0.1 0.1 0.1; to: 0.14 0.14 0.14; dir: alternate; dur: 600; loop: true"></a-entity>
+
+      <!-- fish -->
+      <a-entity position="0 0.3 0"  animation="property: rotation; to: 0 360 0; dur: 10000; easing: linear; loop: true">
+        <a-entity gltf-model="url(models/fish3.glb)" position="0.25 0 0" scale="0.1 0.1 0.1"></a-entity>
+      </a-entity>
+
+      <a-sphere class="clickable" color-changer
+                position="0.6 0.5 0" radius="0.2" color="#EF2D5E"
+                animation="property: position; from: 0.6 0.4 0; to: 0.6 0.8 0; dir: alternate; dur: 700; easing: easeInOutQuad; loop: true"></a-sphere>
+
+      <a-cone class="clickable" treasure-interaction position="-0.65 0.15 0.35" radius-bottom="0.15" radius-top="0" height="0.15" color="#F39C12"></a-cone>
+
+      <a-cylinder position="0.65 0.25 0.35"
+                  radius="0.15" height="0.5"
+                  color="#1ABC9C"></a-cylinder>
+
+      <a-text value="Ocean" position="0 1.4 0" align="center"
+              width="3" color="#FFFFFF"></a-text>
+    </a-marker>
+
+     <!-- Camera + "tap" detection (cursor uses the touch / mouse position) -->
+    <a-entity camera
+              cursor="rayOrigin: mouse"
+              raycaster="objects: .clickable"></a-entity>
+  </a-scene>
+</body>
+</html>
